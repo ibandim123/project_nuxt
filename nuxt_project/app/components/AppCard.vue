@@ -28,7 +28,7 @@ const hasError = computed(() => !!fetchError.value);
     </div>
 
     <div v-else-if="hasError" class="error">
-      <p>❌ Ops! Algo deu errado.</p>
+      <p>Ops! Algo deu errado.</p>
       <small>{{ fetchError?.message || "Erro desconhecido" }}</small>
     </div>
 
@@ -37,7 +37,7 @@ const hasError = computed(() => !!fetchError.value);
     </div>
 
     <div v-else class="empty">
-      <p>📭 Nenhuma mensagem encontrada</p>
+      <p>Nenhuma mensagem encontrada</p>
     </div>
   </body>
 </template>
