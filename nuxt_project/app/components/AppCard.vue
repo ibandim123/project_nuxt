@@ -1,101 +1,148 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+type data = {
+  userId: number;
+  id: number;
+  title: string;
+  body: string;
+};
 
-const apiUrl = "https://jsonplaceholder.typicode.com/posts/1";
-const messageAPI = ref("");
-const displayedText = ref("");
-const isLoading = ref(true);
-const error = ref("");
+const {
+  data: data,
+  error: fetchError,
+  pending,
+} = await useFetch("https://jsonplaceholder.typicode.com/posts/1");
 
-async function consumeAPI() {
-  try {
-    isLoading.value = true;
-    error.value = "";
-    displayedText.value = "";
-
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    messageAPI.value = data.title;
-
-    return messageAPI.value;
-  } catch (err: Error | unknown) {
-    console.log(err);
-    error.value = "Erro ao consumir a API: " + (err as Error).message;
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-onMounted(() => {
-  consumeAPI();
-});
+console.log(pending.value);
+const message = computed(
+  () => data.value?.title || "Nenhuma mensagem encontrada",
+);
+const isLoading = computed(() => pending.value);
+const hasError = computed(() => !!fetchError.value);
 </script>
 
 <template>
-  <div v-if="isLoading" class="loading">
-    <span class="block">
+  <body class="container">
+    <div v-if="isLoading" class="loading">
       <div class="spinner"></div>
-      Carregando mensagem...
-    </span>
-  </div>
+      <span>Carregando mensagem...</span>
+    </div>
 
-  <div v-else-if="error" class="error">
-    {{ error }}
-  </div>
+    <div v-else-if="hasError" class="error">
+      <p>❌ Ops! Algo deu errado.</p>
+      <small>{{ fetchError?.message || "Erro desconhecido" }}</small>
+    </div>
 
-  <div v-else class="success">
-    <h3>Olá Mundo, {{ messageAPI }}</h3>
-  </div>
+    <div v-else-if="message" class="success">
+      <h3 aria-live="polite">Olá Mundo, {{ message }}</h3>
+    </div>
+
+    <div v-else class="empty">
+      <p>📭 Nenhuma mensagem encontrada</p>
+    </div>
+  </body>
 </template>
 
 <style scoped>
-* {
-  height: 99vh;
+.container {
+  min-height: 70vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #f5f5f5ee 40%, #ffffff 60%);
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  padding: 2rem;
 }
 
-.block {
+.loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-}
-
-.loading {
-  flex-direction: column;
-  align-items: center;
-  color: #666;
+  color: #6c757d;
+  font-size: 1.1rem;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e0e0e0;
-  border-top: 4px solid #666;
+  width: 48px;
+  height: 48px;
+  border: 3px solid #e9ecef;
+  border-top: 3px solid #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  will-change: transform;
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
+  to {
     transform: rotate(360deg);
   }
 }
 
+.error {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #dc3545;
+  max-width: 400px;
+  text-align: center;
+}
+
 .success {
-  animation: fadeIn 0.5s ease-in;
+  animation: fadeInUp 0.6s ease-out;
+  text-align: center;
+}
+
+.success h3 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 600;
 }
 
 .cursor {
   animation: blink 1s infinite;
-  color: #252725;
+  color: #28a745;
   font-weight: bold;
+}
+
+.empty {
+  color: #6c757d;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .success h3 {
+    font-size: 1.2rem;
+  }
+
+  .error {
+    padding: 1rem;
+  }
 }
 </style>
